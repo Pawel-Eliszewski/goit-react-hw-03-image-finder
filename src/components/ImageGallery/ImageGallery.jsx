@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 import css from './ImageGallery.module.css';
 
 export class ImageGallery extends Component {
+  setChosenImage = e => {
+    const { src, alt } = e.target;
+    this.props.onImageClick(src, alt);
+  };
+
   render() {
     return (
       <ul className={css.gallery}>
@@ -10,9 +15,11 @@ export class ImageGallery extends Component {
           return (
             <li className={css.item} key={image.id}>
               <img
+                id={image.id}
                 className={css.image}
-                src={image.webformatURL}
+                src={image.largeImageURL}
                 alt={image.tags}
+                onClick={this.setChosenImage}
               />
             </li>
           );
@@ -26,8 +33,9 @@ ImageGallery.propTypes = {
   images: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
-      webformatURL: PropTypes.string.isRequired,
+      largeImageURL: PropTypes.string.isRequired,
       tags: PropTypes.string.isRequired,
     })
   ).isRequired,
+  onImageClick: PropTypes.func.isRequired,
 };
