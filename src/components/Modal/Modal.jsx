@@ -4,21 +4,18 @@ import css from './Modal.module.css';
 
 export class Modal extends Component {
   componentDidMount() {
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
-        this.props.onClose();
-      }
-    });
+    document.addEventListener('keydown', this.props.onEsc);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.props.onEsc);
   }
 
   render() {
     return (
-      <div className={css.overlay} onClick={this.props.onClose}>
+      <div className={css.overlay} id="overlay" onClick={this.props.onClick}>
         <div className={css.modal}>
-          <img
-            src={this.props.chosenImageLargeUrl}
-            alt={this.props.chosenImageAlt}
-          />
+          <img src={this.props.modalUrl} alt={this.props.modalAlt} />
         </div>
       </div>
     );
@@ -26,7 +23,8 @@ export class Modal extends Component {
 }
 
 Modal.propTypes = {
-  chosenImageLargeUrl: PropTypes.string.isRequired,
-  chosenImageAlt: PropTypes.string.isRequired,
-  onClose: PropTypes.func.isRequired,
+  modalUrl: PropTypes.string.isRequired,
+  modalAlt: PropTypes.string.isRequired,
+  onClick: PropTypes.func.isRequired,
+  onEsc: PropTypes.func.isRequired,
 };

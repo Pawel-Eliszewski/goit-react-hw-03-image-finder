@@ -5,23 +5,25 @@ import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Button } from './Button/Button';
 import { Modal } from './Modal/Modal';
 import axios from 'axios';
+import Notiflix from 'notiflix';
 
 export class App extends Component {
   state = {
     query: '',
     images: [],
     page: 1,
-    loading: false,
-    chosenImageLargeUrl: '',
-    chosenImageAlt: '',
-    open: false,
+    totalPages: 1,
+    isLoading: false,
+    modalUrl: '',
+    modalAlt: '',
+    isModalOpen: false,
   };
 
   handleFormSubmit = input => {
     this.setState({
       page: 1,
       query: input.name,
-      loading: true,
+      isLoading: true,
     });
   };
 
@@ -36,59 +38,85 @@ export class App extends Component {
       '&page=' +
       `${this.state.page}`;
 
-    try {
-      const response = await axios.get(`${URL}`);
-      if (this.state.images !== response.data.hits) {
-        this.setState({
-          images: response.data.hits,
-          loading: false,
-        });
+    if (this.state.isLoading !== true) {
+    } else
+      try {
+        const response = await axios.get(`${URL}`);
+        const totalPages = Math.ceil(response.data.totalHits / 12);
+        if (this.state.page === 1) {
+          this.setState({
+            images: response.data.hits,
+            isLoading: false,
+            totalPages: totalPages,
+          });
+          Notiflix.Notify.success(
+            `Hooray! We found ${response.data.totalHits} images.`
+          );
+        } else if (this.state.page !== 1) {
+          this.setState(prevState => ({
+            images: [...prevState.images, ...response.data.hits],
+            isLoading: false,
+          }));
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
   }
 
-  handleBtnClick = () => {
+  handleBtnClick = e => {
+    e.preventDefault();
     this.setState(prevState => {
-      return { ...this.state, page: prevState.page + 1, loading: true };
+      return { page: prevState.page + 1, isLoading: true };
     });
   };
 
-  handleImgClick = (src, alt) => {
-    this.setState(() => {
-      return {
-        ...this.state,
-        chosenImageLargeUrl: src,
-        chosenImageAlt: alt,
-        open: true,
-      };
+  handleImgClick = e => {
+    e.preventDefault();
+    const chosenImgLargeUrl = e.target.dataset['src'];
+    const chosenImgAlt = e.target['alt'];
+    this.setState({
+      isModalOpen: true,
+      modalUrl: chosenImgLargeUrl,
+      modalALt: chosenImgAlt,
     });
   };
 
-  handleModalClick = () => {
-    this.setState({ ...this.state, open: false });
+  handleModalClick = e => {
+    if (e.target.name === undefined) {
+      this.setState({ isModalOpen: false });
+    }
+  };
+
+  handleModalEsc = e => {
+    if (e.key === 'Escape') {
+      this.setState({ isModalOpen: false });
+    }
   };
 
   render() {
-    const { images, loading, open, chosenImageLargeUrl, chosenImageAlt } =
-      this.state;
+    const {
+      images,
+      page,
+      totalPages,
+      isLoading,
+      isModalOpen,
+      modalUrl,
+      modalAlt,
+    } = this.state;
     return (
       <div className="main">
         <Searchbar onFormSubmit={this.handleFormSubmit} />
-        {loading ? (
-          <Loader />
-        ) : images.length > 0 ? (
-          <ImageGallery images={images} onImageClick={this.handleImgClick} />
+        {images.length > 0 ? (
+          <ImageGallery images={images} onClick={this.handleImgClick} />
         ) : null}
-        {images.length >= 12 ? (
-          <Button onLoadMore={this.handleBtnClick} />
-        ) : null}
-        {open === true ? (
+        {isLoading ? <Loader /> : null}
+        {page !== totalPages ? <Button onClick={this.handleBtnClick} /> : null}
+        {isModalOpen === true ? (
           <Modal
-            onClose={this.handleModalClick}
-            chosenImageLargeUrl={chosenImageLargeUrl}
-            chosenImageAlt={chosenImageAlt}
+            onClick={this.handleModalClick}
+            onEsc={this.handleModalEsc}
+            modalUrl={modalUrl}
+            modalAlt={modalAlt}
           />
         ) : null}
       </div>

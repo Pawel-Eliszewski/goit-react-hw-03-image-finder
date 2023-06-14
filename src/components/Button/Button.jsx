@@ -1,19 +1,18 @@
 import { Component } from 'react';
 import PropTypes from 'prop-types';
+import Notiflix from 'notiflix';
 import css from './Button.module.css';
 
 export class Button extends Component {
-  fetchNextPage = () => {
-    this.props.onLoadMore();
+  componentWillUnmount() {
+    Notiflix.Notify.info(
+      "We're sorry, but you've reached the end of search results."
+    );
   }
 
   render() {
     return (
-      <button
-        type="button"
-        className={css.button}
-        onClick={() => this.fetchNextPage()}
-      >
+      <button type="button" className={css.button} onClick={this.props.onClick}>
         <span className={css.label}>Load more</span>
       </button>
     );
@@ -21,5 +20,5 @@ export class Button extends Component {
 }
 
 Button.propTypes = {
-  onLoadMore: PropTypes.func.isRequired,
-}
+  onClick: PropTypes.func.isRequired,
+};
